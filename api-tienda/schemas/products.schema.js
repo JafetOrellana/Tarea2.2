@@ -17,9 +17,9 @@ const productSchema = z.object({
     }), //decimal(10,2) NOT NULL,
     "stock": z.number().int({
         message: "El stock debe ser un número entero"
-    }),/*.nonegative({
+    }).nonnegative({
         message: "El stock no puede ser negativo"
-    }),*/ //int(11) NOT NULL DEFAULT '0',
+    }), //int(11) NOT NULL DEFAULT '0',
     "categoria": z.string().trim().max(50).nullable().optional(), //varchar(50) DEFAULT NULL,
     "fecha_creacion": z.string({
         invalid_type_error: "La fecha de creación debe ser un string"
