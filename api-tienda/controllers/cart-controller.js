@@ -1,4 +1,6 @@
 import connection from '../config/db.js';
+import { ValidateAddToCart, validateDeleteFromCartSchema } from '../schemas/cart.schemas.js';
+
 
 export class CartController {
     static getCartByUser(req, res) {
@@ -36,6 +38,15 @@ export class CartController {
 
     static addToCart(req, res) {
         const data = req.body;
+
+        const {success, error} = ValidateAddToCart(data);
+
+        if (!success) {
+            return res.status(400).json({
+                message: JSON.parse(error.message)
+            })
+        }
+        
         const { usuario_id, producto_id, cantidad = 1, detalle_id = null } = data;
     
         if (!usuario_id || !producto_id) {
@@ -149,8 +160,19 @@ export class CartController {
     
 
     static removeFromCart(req, res) {
+
+
         const id = req.params.id;  
         const { producto_id } = req.body;
+        const data = req.body;
+
+        const {success, error} = validateDeleteFromCartSchema(data);
+
+        if (!success) {
+            return res.status(400).json({
+                message: JSON.parse(error.message)
+            })
+        }
     
         connection.beginTransaction((err) => {
             if (err) {
