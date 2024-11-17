@@ -1,5 +1,5 @@
 import express, { json } from "express";
-import productsRoute from "./routes/products.js";
+import productRoute from "./routes/products.js";
 
 const app = express();
 
@@ -9,7 +9,7 @@ app.use(json());
 const PORT = process.env.PORT || 3000;
 
 // Rutas 
-app.use('./products', productsRoute);
+app.use('./products', productRoute);
 
 // Midleware para manejo de rutas inexistentes 
 app.use((req, res) => {
