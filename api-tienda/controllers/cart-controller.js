@@ -33,4 +33,51 @@ export class CartController {
             });
         }
     }
+
+    static addToCart(req, res) {
+        const data = req.body;
+        const { usuario_id, producto_id, cantidad = 1, detalle_id = null } = data;  
+    
+        if (!usuario_id || !producto_id) {
+            return res.status(400).json({
+                error: true,
+                message: "Faltan datos en la solicitud. Asegúrese de incluir usuario_id y producto_id."
+            });
+        }
+    
+        const query = 'INSERT INTO carrito (usuario_id, producto_id, cantidad, detalle_id) VALUES (?, ?, ?, ?)';
+    
+        try {
+            connection.query(query, [usuario_id, producto_id, cantidad, detalle_id], (error, results) => {
+                if (error) {
+                    return res.status(400).json({
+                        error: true,
+                        message: "Ocurrió un error al agregar el producto al carrito: " + error.message,
+                    });
+                }
+    
+                // Respuesta exitosa
+                return res
+                    .header("Content-Type", "application/json")
+                    .status(201)
+                    .json({
+                        message: "Producto agregado al carrito",
+                        data: {
+                            usuario_id,
+                            producto_id,
+                            cantidad,
+                            detalle_id
+                        }
+                    });
+            });
+        } catch (error) {
+            // Error inesperado
+            return res.status(500).json({
+                error: true,
+                message: "Ocurrió un error interno al procesar la solicitud: " + error.message,
+            });
+        }
+    }
+    
+    
 }
