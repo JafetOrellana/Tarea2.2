@@ -3,7 +3,7 @@ import connection from '../config/db.js';
 export class CartController {
     static getCartByUser(req, res) {
         const id = req.params.id;
-        const query = 'SELECT * FROM carrito WHERE usuario_id = ?';  
+        const query = 'SELECT c.id, c.usuario_id, c.producto_id, c.cantidad, p.nombre, p.precio FROM carrito c JOIN productos p ON c.producto_id = p.id WHERE c.usuario_id = ?';  
 
         try {
             connection.query(query, [id], (error, results) => {
@@ -72,6 +72,42 @@ export class CartController {
             });
         } catch (error) {
             // Error inesperado
+            return res.status(500).json({
+                error: true,
+                message: "Ocurrió un error interno al procesar la solicitud: " + error.message,
+            });
+        }
+    }
+
+    static removeFromCart(req, res) {
+        const id = req.params.id;  
+        const data = req.body;
+        const id_producto = data.producto_id;
+    
+        const query = 'DELETE FROM carrito WHERE usuario_id = ? AND producto_id = ?';
+    
+        try {
+            connection.query(query, [id, id_producto], (error, results) => {
+                if (error) {
+                    return res.status(400).json({
+                        error: true,
+                        message: "Ocurrió un error al eliminar el producto del carrito: " + error.message,
+                    });
+                }
+    
+                if (results.affectedRows === 0) {
+                    return res.status(404).json({
+                        error: true,
+                        message: `Producto ${id_producto} no encontrado en el carrito del usuario ${id}`,
+                    });
+                }
+    
+                return res
+                    .header("Content-Type", "application/json")
+                    .status(200)
+                    .json({ message: `Producto ${id_producto} eliminado del carrito del usuario ${id}` });
+            });
+        } catch (error) {
             return res.status(500).json({
                 error: true,
                 message: "Ocurrió un error interno al procesar la solicitud: " + error.message,

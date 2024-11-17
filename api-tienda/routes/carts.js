@@ -8,8 +8,8 @@ const cartRouter = Router();
 cartRouter.get('/:id', CartController.getCartByUser);
 
 cartRouter.post('/', CartController.addToCart);
-/*
-cartRouter.put('/:id', CartController.removeFromCart);
-*/
+
+cartRouter.delete('/:id', CartController.removeFromCart);
+
 
 export default cartRouter
