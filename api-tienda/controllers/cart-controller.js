@@ -150,39 +150,72 @@ export class CartController {
 
     static removeFromCart(req, res) {
         const id = req.params.id;  
-        const data = req.body;
-        const id_producto = data.producto_id;
+        const { producto_id } = req.body;
     
-        const query = 'DELETE FROM carrito WHERE usuario_id = ? AND producto_id = ?';
+        connection.beginTransaction((err) => {
+            if (err) {
+                return res.status(500).json({
+                    error: true,
+                    message: "Ocurrió un error al iniciar la transacción: " + err.message,
+                });
+            }
     
-        try {
-            connection.query(query, [id, id_producto], (error, results) => {
-                if (error) {
-                    return res.status(400).json({
-                        error: true,
-                        message: "Ocurrió un error al eliminar el producto del carrito: " + error.message,
+            const getQuantityQuery = 'SELECT cantidad FROM carrito WHERE usuario_id = ? AND producto_id = ?';
+            connection.query(getQuantityQuery, [id, producto_id], (error, results) => {
+                if (error || results.length === 0) {
+                    return connection.rollback(() => {
+                        return res.status(400).json({
+                            error: true,
+                            message: "Producto no encontrado en el carrito o error: " + (error ? error.message : ""),
+                        });
                     });
                 }
     
-                if (results.affectedRows === 0) {
-                    return res.status(404).json({
-                        error: true,
-                        message: `Producto ${id_producto} no encontrado en el carrito del usuario ${id}`,
-                    });
-                }
+                const cantidad = results[0].cantidad;
     
-                return res
-                    .header("Content-Type", "application/json")
-                    .status(200)
-                    .json({ message: `Producto ${id_producto} eliminado del carrito del usuario ${id}` });
+                const deleteQuery = 'DELETE FROM carrito WHERE usuario_id = ? AND producto_id = ?';
+                connection.query(deleteQuery, [id, producto_id], (deleteError, deleteResults) => {
+                    if (deleteError || deleteResults.affectedRows === 0) {
+                        return connection.rollback(() => {
+                            return res.status(400).json({
+                                error: true,
+                                message: "Error al eliminar el producto del carrito: " + deleteError.message,
+                            });
+                        });
+                    }
+    
+                    const updateStockQuery = 'UPDATE productos SET stock = stock + ? WHERE id = ?';
+                    connection.query(updateStockQuery, [cantidad, producto_id], (stockError) => {
+                        if (stockError) {
+                            return connection.rollback(() => {
+                                return res.status(400).json({
+                                    error: true,
+                                    message: "Error al actualizar el stock: " + stockError.message,
+                                });
+                            });
+                        }
+    
+                        connection.commit((commitError) => {
+                            if (commitError) {
+                                return connection.rollback(() => {
+                                    return res.status(500).json({
+                                        error: true,
+                                        message: "Error al confirmar la transacción: " + commitError.message,
+                                    });
+                                });
+                            }
+    
+                            return res.status(200).json({
+                                success: true,
+                                message: `Producto ${producto_id} eliminado del carrito y stock actualizado.`,
+                            });
+                        });
+                    });
+                });
             });
-        } catch (error) {
-            return res.status(500).json({
-                error: true,
-                message: "Ocurrió un error interno al procesar la solicitud: " + error.message,
-            });
-        }
+        });
     }
+    
     
     
 }
