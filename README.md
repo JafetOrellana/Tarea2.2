@@ -24,18 +24,20 @@ Este proyecto es una API RESTful básica para la gestión de productos y un carr
 3. Instala las dependencias necesarias:
 
     ```bash
-    npm install
+    npm install express
+    npm install zod
+    npm install mysql
+    npm install dotenv
     ```
 
 ## Dependencias
 
 El proyecto utiliza las siguientes dependencias:
 
-- **dotenv**: Para gestionar variables de entorno.
 - **express**: Framework de Node.js para construir APIs y manejar rutas.
-- **mysql**: Librería para interactuar con bases de datos MySQL.
-- **mysql2**: Librería moderna y más rápida para interactuar con MySQL.
 - **zod**: Librería de validación de esquemas para asegurar la estructura y los tipos de datos.
+- **mysql**: Librería para interactuar con bases de datos MySQL.
+- **dotenv**: Para gestionar variables de entorno.
 
 ## Ejecución
 
