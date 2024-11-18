@@ -19,12 +19,7 @@ const productSchema = z.object({
     }).nonnegative({
         message: "El stock no puede ser negativo"
     }), // int(11) NOT NULL DEFAULT '0',
-    "categoria": z.string().trim().max(50).nullable().optional(), // varchar(50) DEFAULT NULL,
-    "fecha_creacion": z.string({
-        invalid_type_error: "La fecha de creación debe ser un string"
-    }).datetime({
-        message: "La fecha de creación debe ser en formato ISO 8601 de fecha y hora"
-    }) // timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "categoria": z.string().trim().max(50).nullable().optional()
 });
 
 export const ValidateProductSchema = (product) => {

@@ -52,7 +52,7 @@ export class ProductController {
     }
 
     static createProduct(req, res) {
-        const query = `INSERT INTO productos (nombre, descripcion, precio, stock, categoria, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?)`;
+        const query = `INSERT INTO productos (nombre, descripcion, precio, stock, categoria) VALUES (?, ?, ?, ?, ?)`;
         const data = req.body;
 
         const { success, error } = ValidateProductSchema(data);
@@ -64,11 +64,9 @@ export class ProductController {
 
         try {
 
-            const { nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
+            const { nombre, descripcion, precio, stock, categoria } = data;
 
-            const nuevaFecha = new Date(fecha_creacion).toISOString().slice(0, 19).replace('T', ' ');
-
-            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null, nuevaFecha], (error, results) => {
+            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null], (error, results) => {
                 if (error) {
                     return res.status(400).json({
                         error: true,
@@ -87,14 +85,14 @@ export class ProductController {
         } catch (error) {
             res.status(500).json({
                 error: true,
-                message: "Ocurrio un error al crear el producto" + error.message
+                message: "Ocurrio un error inesperado: " + error.message
             });
         }
     }
 
 
     static updateProduct(req, res) {
-        const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, categoria = ?, fecha_creacion = ? WHERE id = ?`;
+        const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, categoria = ? WHERE id = ?`;
         const data = req.body;
         const { id } = req.params;
 
@@ -107,11 +105,9 @@ export class ProductController {
 
         try {
 
-            const { nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
+            const { nombre, descripcion, precio, stock, categoria } = data;
 
-            const nuevaFecha = new Date(fecha_creacion).toISOString().slice(0, 19).replace('T', ' ');
-
-            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null, nuevaFecha, id], (error, results) => {
+            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null, id], (error, results) => {
                 if (error) {
                     return res.status(400).json({
                         error: true,
@@ -128,7 +124,7 @@ export class ProductController {
         } catch (error) {
             res.status(500).json({
                 error: true,
-                message: "Ocurrio un error al actualizar el producto " + error.message
+                message: "Ocurrio un error inesperado: " + error.message
             });
         }
     }
