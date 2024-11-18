@@ -27,7 +27,7 @@ export class ProductController {
     }
 
     static getProductById(req, res) {
-        const id = req.params;
+        const id = req.params.id;
         const consulta = 'SELECT id, nombre, descripcion, precio, stock, categoria, fecha_creacion FROM productos WHERE id = ?';
 
         try {
@@ -52,76 +52,89 @@ export class ProductController {
     }
 
     static createProduct(req, res) {
-        const query = 'INSERT INTO productos (id, nombre, descripcion, precio, stock, categoria, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const query = `INSERT INTO productos (nombre, descripcion, precio, stock, categoria, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?)`;
         const data = req.body;
 
         const { success, error } = ValidateProductSchema(data);
         if (!success) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: JSON.parse(error.message)
             });
         }
 
         try {
 
-            const { id, nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
+            const { nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
 
-            connection.query(query, { id, nombre, descripcion, precio, stock, categoria, fecha_creacion }, (error, results) => {
+            const nuevaFecha = new Date(fecha_creacion).toISOString().slice(0, 19).replace('T', ' ');
+
+            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null, nuevaFecha], (error, results) => {
                 if (error) {
                     return res.status(400).json({
                         error: true,
-                        message: "Ocurrio un error al crear el producto" + error,
+                        message: "Ocurrió un error al crear el producto: " + error,
                     });
                 }
                 res
                     .header("Content-Type", "application/json")
                     .status(201)
-                    .json({ data });
-            });
+                    .json({
+                        message: "Producto creado exitosamente",
+                        productId: results.insertId // Devuelve el ID generado
+                    });
+            }
+            );
         } catch (error) {
-            res.status(400).json({
+            res.status(500).json({
                 error: true,
-                message: "Ocurrio un error al crear el producto" + error
+                message: "Ocurrio un error al crear el producto" + error.message
             });
         }
     }
 
+
     static updateProduct(req, res) {
-        const query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, categoria = ?, fecha_creacion = ? WHERE id = ?';
+        const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, categoria = ?, fecha_creacion = ? WHERE id = ?`;
         const data = req.body;
+        const { id } = req.params;
 
         const { success, error } = ValidateProductSchema(data);
         if (!success) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: JSON.parse(error.message)
             });
         }
 
         try {
-            const { id, nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
 
-            connection.query(query, { nombre, descripcion, precio, stock, categoria, fecha_creacion, id }, (error, results) => {
+            const { nombre, descripcion, precio, stock, categoria, fecha_creacion } = data;
+
+            const nuevaFecha = new Date(fecha_creacion).toISOString().slice(0, 19).replace('T', ' ');
+
+            connection.query(query, [nombre, descripcion || null, precio, stock, categoria || null, nuevaFecha, id], (error, results) => {
                 if (error) {
                     return res.status(400).json({
                         error: true,
-                        message: "Ocurrio un error al actualizar el producto" + error,
+                        message: "Ocurrió un error al actualizar el producto: " + error,
                     });
                 }
                 res
                     .header("Content-Type", "application/json")
                     .status(200)
-                    .json({ data });
+                    .json({
+                        message: "Producto actualizado exitosamente"
+                    });
             });
         } catch (error) {
-            res.status(400).json({
+            res.status(500).json({
                 error: true,
-                message: "Ocurrio un error al actualizar el producto" + error
+                message: "Ocurrio un error al actualizar el producto " + error.message
             });
         }
     }
 
     static deleteProduct(req, res) {
-        const id = req.params;
+        const id = req.params.id;
         const query = 'DELETE FROM productos WHERE id = ?';
 
         try {
@@ -135,7 +148,7 @@ export class ProductController {
                 res
                     .header("Content-Type", "application/json")
                     .status(200)
-                    .json({ message: "Producto eliminado" });
+                    .json({ message: "Producto eliminado exitosamente" });
             });
         } catch (error) {
             res.status(400).json({
